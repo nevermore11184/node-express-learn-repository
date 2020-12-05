@@ -1,0 +1,25 @@
+<main>
+	{{# if hasProducts }}
+		{{#each prods}}
+				<div>
+					<article>
+						<header>
+							<h1>{{this.title}}</h1>
+						</header>
+						<div>
+							<img src="https://lh3.googleusercontent.com/proxy/bVVpWRtB92GBXO5hjPF-d4P1QhxczXhqTAEtCe2suGn0jpS1llv9Q3huum92bJ0qg8O5rQc_D1dRdTdWESBGy4bbk-Ir1OPWjVcrVpxq" />
+						</div>
+						<div>
+							<h2>price</h2>
+							<p>description</p>
+						</div>
+						<div>
+							<button>Add to cart</button>
+						</div>
+					</article>
+				</div>
+		{{/each}}
+		{{else}}
+		<h1>No products, add something!</h1>
+		{{/if}}
+</main>

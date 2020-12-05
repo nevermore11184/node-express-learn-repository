@@ -1,0 +1,35 @@
+<html>
+<%- include('../layouts/includes/head.ejs')%>
+<%- include('../layouts/includes/navigation.ejs')%>
+<body>
+<main>
+    <% if (prods.length > 0) { %>
+    <%for (let product of prods) {%>
+    <div>
+        <article>
+            <header>
+                <h1><%=product.title%></h1>
+            </header>
+            <div>
+                <img alt="ghost" src="<%= product.imageUrl %>" />
+            </div>
+            <div>
+                <h2><%= product.price %></h2>
+                <p><%= product.description %></p>
+            </div>
+            <div>
+                <a href="/products/<%=product.id%>">Details</a>
+                <form action="/cart" method="post">
+                    <button type="submit">Add to cart</button>
+                    <input type="hidden" name="productId" value="<%= product.id %>" />
+                </form>
+            </div>
+        </article>
+    </div>
+    <%}%>
+    <%} else {%>
+        <h1>No products, add something!</h1>
+    <%}%>
+</main>
+</body>
+</html>
