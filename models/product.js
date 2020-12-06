@@ -1,3 +1,4 @@
+/** files system */
 // const fs = require('fs');
 // const path = require('path');
 // const rootDir = require('../utils/path');
@@ -82,6 +83,7 @@
 //     this.price = price;
 //   }
 //   async save() {
+//     VALUES (?, ?, ?, ?) is in usage here for save data inserting. Avoid cross-browser scripting
 //     return await db.execute('INSERT INTO products (title, price, imageUrl, description) VALUES (?, ?, ?, ?)', [
 //       this.title, this.price, this.imageUrl, this.description
 //     ]);
@@ -111,6 +113,7 @@ const Sequelize = require('sequelize');
 
 const sequelize = require('../utils/database');
 
+/** belongs to many cart / order */
 const Product = sequelize.define('product', {
   id: {
     type: Sequelize.INTEGER,

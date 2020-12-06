@@ -16,6 +16,10 @@ const path = require('path');
 
 // const db = require('./utils/database');
 const sequelize = require('./utils/database');
+const Product = require('./models/product');
+const User = require('./models/user');
+const Cart = require('./models/cart');
+const CartItem = require('./models/cart-item');
 
 const express = require('express');
 
@@ -35,6 +39,24 @@ const errorsController = require('./controllers/error');
 
 const app = express(); // declaring an express application
 
+/** mySQL relations */
+
+Product.belongsTo(User, {
+  constraints: true,
+  onDelete: 'CASCADE', // removing a user will lead to removing all his products,
+});
+User.hasMany(Product);
+
+User.hasOne(Cart);
+Cart.belongsTo(User);
+
+/** 1 cart can have multiple products */
+Cart.belongsToMany(Product, { through: CartItem });
+
+/** a single product can be part of multiple different carts */
+Product.belongsToMany(Cart, { through: CartItem });
+/**  */
+
 // app.engine('hbs', expressHbs({
 //   extname: "hbs",
 //   defaultLayout: "main-layout.hbs",
@@ -46,7 +68,6 @@ const app = express(); // declaring an express application
 // app.set('view engine', 'hbs');
 
 app.set('view engine', 'ejs');
-
 // allows us to set any values globally to the app
 // usage by default, we can not set an extension like .html and so on
 
@@ -66,6 +87,15 @@ app.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
   next();
+});
+
+app.use((request, response, next) => {
+  User.findByPk(1)
+    .then(user => {
+      request.user = user;
+      next();
+    })
+    .catch(error => console.log(error));
 });
 
 app.use(express.static(path.join(__dirname, 'public')));
@@ -90,7 +120,6 @@ app.use('/catalogue', (request, response, next) => {
   response.send('<h1>Catalogue page</h1>');
 }); // will be executed only for /catalogue route
 
-
 const { getErrorPage } = errorsController;
 
 app.use('/', getErrorPage);
@@ -101,9 +130,28 @@ app.use('/', getErrorPage);
 
 const server = http.createServer(app);
 
+{/** automatically creates (syncs) all the defined models. (not override existing ones!) */}
+
+// .sync({ force: true }) - overrides existing entities
 sequelize.sync()
-  .then(result => {
-    console.log(result);
+  .then(() => {
+    return User.findByPk(1);
+  })
+  .then(user => {
+    if (!user) {
+      return User.create({ name: 'Oleksii', email: 'test.email@gmail.com' })
+    } else {
+      return user;
+    }
+  })
+  .then((user) => {
+    user.getCart().then(cart => {
+      if (!cart) return user.createCart();
+      return user;
+    })
+  })
+  .then(user => {
+    console.log(user, 'user');
     server.listen(8001); // or app.listen(8001)
   })
   .catch((error) => console.log(error));
