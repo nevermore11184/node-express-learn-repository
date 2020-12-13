@@ -13,6 +13,7 @@ const {
   getSpecificProduct,
   postCart,
   postCardDeleteProduct,
+  postOrder,
 } = shopController;
 
 // GET, POST and other methods will do an exact match here!!!
@@ -31,5 +32,7 @@ router.post('/cart', postCart);
 router.get('/orders', getOrders);
 
 router.get('/checkout', getCheckout);
+
+router.post('/create-order', postOrder);
 
 module.exports = router;

@@ -19,7 +19,9 @@ const sequelize = require('./utils/database');
 const Product = require('./models/product');
 const User = require('./models/user');
 const Cart = require('./models/cart');
+const Order = require('./models/order');
 const CartItem = require('./models/cart-item');
+const OrderItem = require('./models/order-item');
 
 const express = require('express');
 
@@ -56,6 +58,11 @@ Cart.belongsToMany(Product, { through: CartItem });
 /** a single product can be part of multiple different carts */
 Product.belongsToMany(Cart, { through: CartItem });
 /**  */
+
+Order.belongsTo(User);
+User.hasMany(Order);
+Order.belongsToMany(Product, { through: OrderItem });
+Product.belongsToMany(Order, { through: OrderItem });
 
 // app.engine('hbs', expressHbs({
 //   extname: "hbs",
@@ -133,7 +140,7 @@ const server = http.createServer(app);
 {/** automatically creates (syncs) all the defined models. (not override existing ones!) */}
 
 // .sync({ force: true }) - overrides existing entities
-sequelize.sync()
+sequelize.sync({ force: true })
   .then(() => {
     return User.findByPk(1);
   })
@@ -145,8 +152,13 @@ sequelize.sync()
     }
   })
   .then((user) => {
-    user.getCart().then(cart => {
-      if (!cart) return user.createCart();
+    user.getCart().then(async cart => {
+      if (!cart) {
+        await user.createCart();
+        const response = await user.getCart();
+        response.totalPrice = 0;
+        response.save();
+      }
       return user;
     })
   })

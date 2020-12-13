@@ -14,6 +14,7 @@ exports.getEditProduct = (request, response) => {
 
   const prodId = get(request, 'params.productId');
 
+  /** will find only one product */
   request.user.getProducts({ where: { id: prodId } }).then(results => {
     response.render('admin/edit-product', {
       product: results[0],
@@ -52,7 +53,9 @@ exports.postEditProduct = (request, response) => {
       result.imageUrl = imageUrl;
       result.price = price;
       result.description = description;
-      result.save().then(() =>   response.redirect('/admin/products'));
+      result.save().then(() => {
+        response.redirect('/admin/products')
+      });
     }).catch(error => console.log(error));
 };
 
@@ -93,9 +96,21 @@ exports.postAddProduct = (request, response) => {
 
 exports.deleteProduct = (request, response) => {
   const { productId } = request.params;
-  Product.destroy({ where: { id: productId } });
-  response.redirect('/admin/products');
-
+  request.user.getCart().then(async cart => {
+    const products = await cart.getProducts({ where: { id: productId } });
+    const product = products[0];
+    if (product) {
+      const quantity = product.cartItem.quantity;
+      cart.totalPrice = cart.totalPrice - (quantity * product.price);
+      cart.save().then(() => {
+        Product.destroy({ where: { id: productId } });
+        response.redirect('/admin/products');
+      })
+    } else {
+      Product.destroy({ where: { id: productId } });
+      response.redirect('/admin/products');
+    }
+  });
   /** or */
   // Product.findByPk(productId)
   //   .then(result => result.destroy())

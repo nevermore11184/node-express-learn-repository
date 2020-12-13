@@ -1,5 +1,4 @@
 const Product = require('../models/product');
-const Cart = require('../models/cart');
 const get = require('lodash/get');
 
 exports.getProducts = (request, response) => {
@@ -34,26 +33,26 @@ exports.postCart = (request, response) => {
   //   Cart.addProduct(prodId, Number(product.price), product.title, product.imageUrl);
   //   response.redirect('/cart')
   // }).catch(error => console.log(error));
+
   const prodId = get(request, 'body.productId');
-  request.user.getCart()
-    .then(async cart => {
-      /** receive cart products */
+  request.user.getCart().then(async cart => {
+      /** fetch ONLY 1 product in a cart that belongs to found IDENTIFIER */
       const products = await cart.getProducts({ where: { id: prodId } });
-      /** find a selected product */
-      /** a user already has this product in his cart */
+      /** find a product */
       const foundProduct = await Product.findByPk(prodId);
-      if (products.length > 0) {
-        const oldQuantity = products[0].cartItem.quantity;
-        const updatedQuantity = oldQuantity + 1;
-        await cart.addProduct(foundProduct, {
-          through: { quantity: updatedQuantity },
-        })
-      } else {
-        await cart.addProduct(foundProduct, {
-          through: { quantity: 1 }
-        })
-      }
+      const oldQuantity = get(products, '[0].cartItem.quantity');
+      const updatedQuantity = oldQuantity + 1;
+      /** product will be added in this in-between (cartItem) table */
+      await cart.addProduct(foundProduct, {
+        through: { quantity: products.length > 0 ? updatedQuantity : 1 },
+      });
       response.redirect('/cart');
+
+      const previousTotalPrice = cart.totalPrice;
+      cart.totalPrice = previousTotalPrice + foundProduct.price;
+      cart.save().then(() => {
+        response.redirect('/cart');
+      });
     })
     .catch(error => console.log(error));
 };
@@ -67,7 +66,7 @@ exports.getCart = (request, response) => {
             path: '/cart',
             pageTitle: 'Your Cart',
             prods: products,
-            totalPrice: 0,
+            totalPrice: cart.totalPrice,
           })
         });
     })
@@ -81,16 +80,23 @@ exports.getCart = (request, response) => {
   //     totalPrice: cart.totalPrice,
   //   })
   // })
-
 };
 
 exports.postCardDeleteProduct = (request, response) => {
   const { productId } = request.params;
-  Product.fetchAll((products) => {
-    const removedProduct = products.find(product => product.id === productId);
-    Cart.deleteProduct(productId, removedProduct.price)
+  request.user.getCart().then(async cart => {
+    const products = await cart.getProducts({ where: { id: productId } });
+    const product = products[0];
+    await product.cartItem.destroy();
+    response.redirect('/');
   });
-  response.redirect('/cart');
+
+  /** implementation without mySQL */
+  // Product.fetchAll((products) => {
+  //   const removedProduct = products.find(product => product.id === productId);
+  //   Cart.deleteProduct(productId, removedProduct.price)
+  // });
+  // response.redirect('/cart');
 };
 
 exports.getOrders = (request, response, next) => {
@@ -124,4 +130,8 @@ exports.getSpecificProduct = (request, response) => {
       })
     })
     .catch(error => console.log(error))
+};
+
+exports.postOrder = (request, response) => {
+
 };
