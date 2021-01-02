@@ -148,7 +148,7 @@ exports.postOrder = (request, response) => {
 };
 
 exports.getOrders = (request, response) => {
-  /** please also fetch with each order "orderItem" in-between table. otherwise we could do orders[0].getProducts() => product.orderItem
+  /** please also fetch with related products. otherwise we could do orders[0].getProducts() => product.orderItem
    * or product.getOrders() => orders[0] => order.orderItem */
   /** but we use EAGER loading here */
   request.user.getOrders({ include: ['products'] }).then(async orders => {

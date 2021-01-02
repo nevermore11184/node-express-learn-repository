@@ -11,7 +11,6 @@ exports.getAddProductPage = (request, response) => {
 
 exports.getEditProduct = (request, response) => {
   const editMode = get(request, 'query.edit');
-
   const prodId = get(request, 'params.productId');
 
   /** will find only one product */
