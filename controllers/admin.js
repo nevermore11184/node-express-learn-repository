@@ -97,6 +97,7 @@ exports.postAddProduct = (request, response) => {
 exports.deleteProduct = (request, response) => {
   const { productId } = request.params;
   request.user.getCart().then(async cart => {
+    // technically, will find only 1 product
     const products = await cart.getProducts({ where: { id: productId } });
     const product = products[0];
     if (product) {

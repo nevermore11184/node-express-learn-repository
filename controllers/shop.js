@@ -87,8 +87,11 @@ exports.postCardDeleteProduct = (request, response) => {
   request.user.getCart().then(async cart => {
     const products = await cart.getProducts({ where: { id: productId } });
     const product = products[0];
-    await product.cartItem.destroy();
-    response.redirect('/');
+    await cart.removeProduct(product);
+    cart.totalPrice = cart.totalPrice - (product.cartItem.quantity * product.price);
+    cart.save().then(() => {
+      response.redirect('/');
+    });
   });
 
   /** implementation without mySQL */
@@ -97,13 +100,6 @@ exports.postCardDeleteProduct = (request, response) => {
   //   Cart.deleteProduct(productId, removedProduct.price)
   // });
   // response.redirect('/cart');
-};
-
-exports.getOrders = (request, response, next) => {
-  response.render('shop/orders', {
-    path: '/orders',
-    pageTitle: 'Your Cart',
-  })
 };
 
 exports.getCheckout = (request, response) => {
@@ -133,5 +129,33 @@ exports.getSpecificProduct = (request, response) => {
 };
 
 exports.postOrder = (request, response) => {
+  request.user.getCart({ include: ['products'] }).then(async cart => {
+    const createdOrder = await request.user.createOrder();
+    const modifiedProducts = cart.products.map(product => {
+      /** orderItem is the in-between table with ORDER-PRODUCT relations */
+      /** because we have to add bunch of different products here at one time (createdOrder.addProducts)
+       * which is slightly different approach with cart when we add only one product at one time. cart.addProduct */
+      product.orderItem = { quantity: product.cartItem.quantity };
+      return product;
+    });
 
+    await createdOrder.addProducts(modifiedProducts);
+    await cart.setProducts(null);
+    cart.totalPrice = 0;
+    await cart.save();
+    response.redirect('/orders');
+  }).catch(error => console.log(error, 'error'))
+};
+
+exports.getOrders = (request, response) => {
+  /** please also fetch with each order "orderItem" in-between table. otherwise we could do orders[0].getProducts() => product.orderItem
+   * or product.getOrders() => orders[0] => order.orderItem */
+  /** but we use EAGER loading here */
+  request.user.getOrders({ include: ['products'] }).then(async orders => {
+    response.render('shop/orders', {
+      path: '/orders',
+      pageTitle: 'Your Cart',
+      orders: orders,
+    })
+  });
 };

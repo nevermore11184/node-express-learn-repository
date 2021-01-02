@@ -43,26 +43,33 @@ const app = express(); // declaring an express application
 
 /** mySQL relations */
 
+// one to many
 Product.belongsTo(User, {
   constraints: true,
   onDelete: 'CASCADE', // removing a user will lead to removing all his products,
 });
 User.hasMany(Product);
 
+// one to one
 User.hasOne(Cart);
 Cart.belongsTo(User);
 
+// many to many
 /** 1 cart can have multiple products */
 Cart.belongsToMany(Product, { through: CartItem });
 
 /** a single product can be part of multiple different carts */
 Product.belongsToMany(Cart, { through: CartItem });
-/**  */
 
-Order.belongsTo(User);
-User.hasMany(Order);
+// many to many
+/** 1 order can have multiple different products */
 Order.belongsToMany(Product, { through: OrderItem });
+/** a single product can be a part of multiple different orders */
 Product.belongsToMany(Order, { through: OrderItem });
+
+// one to many. A user can have multiple orders. However, an order can only be created by a single user.
+User.hasMany(Order);
+Order.belongsTo(User);
 
 // app.engine('hbs', expressHbs({
 //   extname: "hbs",
@@ -140,7 +147,7 @@ const server = http.createServer(app);
 {/** automatically creates (syncs) all the defined models. (not override existing ones!) */}
 
 // .sync({ force: true }) - overrides existing entities
-sequelize.sync({ force: true })
+sequelize.sync()
   .then(() => {
     return User.findByPk(1);
   })
