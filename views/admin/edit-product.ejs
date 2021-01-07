@@ -3,7 +3,7 @@
 <%- include('../layouts/includes/navigation.ejs')%>
 <body>
 <main>
-    <form class="product-form" action="/admin/edit-product?productId=<%=product.id%>" method="POST">
+    <form class="product-form" action="/admin/edit-product?productId=<%=product._id%>" method="POST">
         <div class="form-control">
             <label for="title">Title</label>
             <input value="<%=product.title%>" type="text" name="title" id="title" />
