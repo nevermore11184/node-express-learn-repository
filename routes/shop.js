@@ -9,6 +9,7 @@ const {
   getIndex,
   getCart,
   getCheckout,
+  postOrders,
   getOrders,
   getSpecificProduct,
   postCart,
@@ -27,6 +28,8 @@ router.get('/cart', getCart);
 router.post('/cart-delete-product/:productId', postCardDeleteProduct);
 
 router.post('/cart', postCart);
+
+router.post('/orders', postOrders);
 
 router.get('/orders', getOrders);
 

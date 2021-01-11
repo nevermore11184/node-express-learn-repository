@@ -9,6 +9,7 @@
 {/** response.sendFile(path.join(rootDir, 'views', 'shop.html')); */} // send default html file
 
 {/** __dirname */}
+const User = require('./models/user');
 // is a global variable that holds an absolute path
 // on our operating system, to the current project`s folder
 const http = require('http');
@@ -61,6 +62,15 @@ app.use((req, res, next) => {
 });
 
 app.use(express.static(path.join(__dirname, 'public')));
+
+app.use((request, response, next) => {
+  User.findById('5ff9ad90bad08c8aa7af2d2c')
+    .then(user => {
+      request.user = new User(user.name, user.email, user.cart, user._id);
+      next();
+    })
+    .catch(error => console.log(error));
+});
 
 {/**
  files that are directly forwarded to the file system

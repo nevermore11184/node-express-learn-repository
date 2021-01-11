@@ -1,5 +1,4 @@
 const Product = require('../models/product');
-// const Cart = require('../models/cart');
 const get = require('lodash/get');
 
 exports.getProducts = (request, response) => {
@@ -23,12 +22,35 @@ exports.getIndex = (request, response) => {
 };
 
 exports.postCart = (request, response) => {
+  const productId = get(request, 'body.productId');
+  Product.findById(productId).then(product => {
+    return request.user.addToCart(product);
+  })
+    .then(() => response.redirect('/cart'))
 };
 
 exports.getCart = (request, response) => {
+  request.user.getCart().then(object => {
+    response.render('shop/cart', {
+      path: '/cart',
+      pageTitle: 'Cart',
+      prods: object.convertedProducts,
+      totalPrice: object.totalPrice,
+    })
+  })
 };
 
 exports.postCardDeleteProduct = (request, response) => {
+  const prodId = get(request, 'body.productId');
+  request.user.deleteItemFromCart(prodId).then(() => {
+    response.redirect('/cart');
+  })
+};
+
+exports.postOrders = (request, response) => {
+  request.user.addOrder().then(() => {
+    response.redirect('/cart');
+  });
 };
 
 exports.getOrders = (request, response, next) => {

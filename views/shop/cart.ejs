@@ -9,7 +9,7 @@
     <div>
         <article>
             <header>
-                <h1><%=product.title%> (<%=product.cartItem.quantity%>)</h1>
+                <h1><%=product.title%> (<%=product.quantity%>)</h1>
             </header>
             <div>
                 <img alt="ghost" src="<%= product.imageUrl %>" />
@@ -18,12 +18,17 @@
                 <h2><%= product.price %></h2>
                 <p><%= product.description %></p>
             </div>
-            <span><%=product.id%></span>
+            <span><%=product._id%></span>
             <div>
-                <a href="/products/<%=product.id%>">Details</a>
-                <form action="/cart-delete-product/<%=product.id%>" method="post">
+                <a href="/products/<%=product._id%>">Details</a>
+                <form action="/cart-delete-product/<%=product._id%>" method="post">
                     <button type="submit">Delete product from cart</button>
-                    <input type="hidden" name="productId" value="<%= product.id %>" />
+                    <input type="hidden" name="productId" value="<%= product._id %>" />
+                </form>
+            </div>
+            <div>
+                <form action="/orders" method="post">
+                    <button type="submit">Order now</button>
                 </form>
             </div>
         </article>

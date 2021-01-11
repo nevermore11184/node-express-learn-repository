@@ -3,5 +3,6 @@
   <component name="JavaScriptLibraryMappings">
     <file url="PROJECT" libraries="{@types/express, @types/prettier}" />
     <includedPredefinedLibrary name="Node.js Core" />
+    <excludedPredefinedLibrary name="node:express/node_modules" />
   </component>
 </project>
